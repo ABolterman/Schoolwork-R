@@ -1,0 +1,89 @@
+---
+title: "STAT 327 - Methods for Generating Random Variables"
+subtitle: "Writing Function"
+author: Abigail Bolterman
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(reshape2)
+```
+
+
+#2. Exercises
+
+## 2.1 Practice Writing Functions
+
+a1) Consider a game where you roll a die, and are paid 25 cents if the die lands on 6, and nothing otherwise. Write a function that plays this game 10000 times, and compute the expected earnings of a participant. Is the simulated expected earnings close to the theoretical expected earnings? What should you price the entry into the game at, to ensure that you make 5 cents per play in the long run?
+
+```{r}
+# Answer:
+roll_a_die = function(n){
+  rolls_six = filter(data.frame(x = sample(1:6, size = n, replace = TRUE)), x==6)
+  return(.25*dim(rolls_six)[1])
+}
+roll_a_die(10000)
+```
+
+The simulated earnings are fairly close to the theoretical earnings. For my simulated earnings, I'm getting around 415 dollars. The theoretical earnings is about $416.67 dollars. Per roll, they make a little over 4 cents. So charging 10 cents would ensure you make at least 5 cents per game.
+
+
+a2) Create a function that takes a deck of cards and deals them into 4 piles. You deal into one pile at a time, using the following rule. Each time you place a card, you count down from 10. If the value of the card ever matches the number you say, move onto the next pile. King, Queen, and Jack all count as 10, ace counts as 1. If you never get a match, add one more card to the pile and mark the pile as not counted. Then sum up the values of the cards on all the showing faces and take that many away from the remaining cards. Return the number of cards left in the deck. call this function a couple times, do you notice a pattern? This last part is not required to answer, but can you figure out why this always returns the same number. Hint(The function should always return 8) Hint 2 (the function match() may help here)
+
+```{r}
+# Answer: 
+a_deck = rep(c(10,10,10,10,9,8,7,6,5,4,3,2,1), 4)
+
+card_trick = function(deck){
+  tops = rep(c(0), 4)
+  for (i in (1:4)){
+    pile = rep(c(0), 11)
+    for (j in 10:0){
+      pile[11-j] = sample(deck, 1)
+      deck = deck[c(-match(pile[11-j], deck))]
+      if (pile[11-j] == j){
+        break
+      }
+    }
+    if (j != 0){
+      tops[i] = pile[11-j]
+    }
+  }
+  return(length(deck)-sum(tops))
+}
+
+card_trick(a_deck)
+
+```
+
+The function will always return 8 cards left in the deck. This is because for each pile, the number of cards in the pile plus the value of the top card (or 0 if face down) will always equal 11. There's 4 piles, so 52-44 = 8.
+
+## 2.2 dplyr Practice
+
+For parts b) and c), consider the dataset "starwars", which is already part of R.
+
+b) Filter the data to only include observations that are droids from Tatooine.
+
+```{r}
+
+# Answer:
+tat_droids = starwars %>%
+  filter(species == "Droid" & homeworld == "Tatooine")
+
+tat_droids
+```
+
+c) Summarize the mean height of the characters broken down by homeworld.
+
+```{r}
+# Answer:
+ave_height = starwars %>%
+  group_by(homeworld) %>%
+  summarise("Mean Height per Homeworld (cm)" = mean(height, na.rm = FALSE))
+
+head(ave_height)
+
+```
+

@@ -1,0 +1,129 @@
+---
+title: "Stat 305 Lecture 13 Exercises: Control Statements and Loops, by Thomas Fiore"
+author: "Solutions by Abigail Bolterman"
+date:   "2022/10/20"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+# no packages required for control statements and loops
+library(ggplot2)
+```
+
+## Exercises
+
+**1) Write an `if then` statement that prints "the vector x has an even number of entries" if the vector
+$x$ has an even number of entries, and try it out on `x=c(1,2,3,4)` and `x=c(1,2,3)`. Recall that the modulo operator (i.e. remainder) in R is `%%` so that the code `11 %% 2` returns one (experiment in the console).**
+```{r}
+x = c(1,2,3,4)
+if (length(x) %% 2 == 0) {
+  print("the vector x has an even number of entries") }
+
+
+```
+
+```{r}
+x = c(1,2,3)
+if (length(x) %% 2 == 0) {
+  print("the vector x has an even number of entries") }
+```
+
+
+
+**2) Write a `for` loop to make scatter plots of `mpg` against all variables in the `mtcars` data set (recall the `names` function). INCLUDE a title on each graph.**
+
+**Hint:** `ggplot` does not print inside of a loop, so you need to put the entire `ggplot` code inside of a print command when you have it in a loop. 
+
+**Hint:** To use a string in `aes()` you need to first convert it to a symbol and then precede it by `!!`. So for example to get `aes(x=hp)` when you have `"hp"` you would do `aes(x=!!sym("hp"))`. 
+
+**Hint:** To make the titles, you will need to use the paste command, 
+
+for instance `paste("mpg versus", "hp")` gives us `"mpg versus hp"`. 
+
+```{r fig.height=2, fig.width=2}
+
+for (name in colnames(mtcars)){
+  plot = ggplot(mtcars, aes(x=!!sym(name), y=mpg)) +
+    geom_point() +
+    ylab("mgp") +
+    xlab(name) +
+    ggtitle(paste("mpg versus", name))
+  print(plot)
+}
+
+```
+
+
+**3) As we learned earlier, we usually shouldn't make a scatterplot of a continuous variable against a categorical variable, as we just did in the previous exercise. So, improve here your code from the previous exercise to plot `mpg` only against the *other* continuous variables. For this you will need to use the `?` command to inspect all variables and decide which are continuous (it would also help to view the data frame). **
+```{r fig.height=2, fig.width=2}
+for (name in c("disp", "hp", "drat", "wt", "qsec")){
+  plot = ggplot(mtcars, aes(x=!!sym(name), y=mpg)) +
+    geom_point() +
+    ylab("mgp") +
+    xlab(name) +
+    ggtitle(paste("mpg versus", name))
+  print(plot)
+}
+
+```
+
+**4) Write a `for` loop that sums 1 to 100 using the aggregation pattern in a `for` loop. **
+
+```{r}
+num = 0
+for (i in c(1:100)){
+  num = num + i
+}
+num
+```
+
+
+**5) Write a `for` loop that finds the product of 1 to 5 using the aggregation pattern in a `for` loop.**
+
+```{r}
+num = 1
+for (i in c(1:5)){
+  num = num * i
+}
+num
+```
+
+
+**6) Write a `for` loop that makes the vector `c(1,2,3,4,5)` using the aggregation pattern with appending vector entries. **
+
+```{r}
+vector = c()
+for (i in c(1:5)){
+  vector[i] = i
+}
+vector
+```
+
+**7) Recall: for a large enough sample of size $n$ from a normal population with known standard deviation $\sigma$, the 95% confidence interval for the population mean has left endpoint 
+$$\overline{x}-1.96*\sigma/\sqrt{n}$$ and has right endpoint 
+$$\overline{x}+1.96*\sigma/\sqrt{n}.$$**
+
+**Write functions that compute the left and right endpoints, with inputs the vector containing the sample and the known population standard deviation.**
+
+```{r}
+leftendpoint = function(xvector,sigma){
+  mean(xvector) - 1.96 * sigma / sqrt(length(xvector))   
+}
+leftendpoint(c(3,4,5,6,7), sqrt(2))
+```
+
+```{r}
+rightendpoint = function(xvector,sigma){
+  mean(xvector) + 1.96 * sigma / sqrt(length(xvector))   
+}
+rightendpoint(c(3,4,5,6,7), sqrt(2))
+```
+

@@ -1,0 +1,83 @@
+---
+title: "STAT 327 - Probability Distributions"
+author: "Abigail Bolterman"
+
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(reshape2)
+```
+
+
+# Part II: Problems in R
+
+**i) Generate 10,000 random samples from a Poisson distribution with lambda = 3, 5, and 9. Thus, you will get 3 vectors with random samples. Compute the mean and variance of each vector. Given what you know about the expected value and variance of a Poisson distribution, are these means and variances what you expect?**
+
+```{r}
+# Answer:
+lam3 = rpois(1000, 3)
+lam5 = rpois(1000, 5)
+lam9 = rpois(1000, 9)
+
+poisson_data = c(mean3 = mean(lam3), "var3" = var(lam3), "mean5"= mean(lam5),
+"var5" = var(lam5), "mean9"= mean(lam9), "var9" = var(lam9))
+poisson_data
+```
+
+For a Poisson distribution, the mean and variance for a particular distribution is equal to the value of lambda. So the means and variances of the 3 distribution are about what I would expect.
+
+
+
+**ii) Generate 10,000 random samples from an exponential distribution with a rate of 2. Plot the density. Refer to the code for the plot of the standard normal distribution earlier in this lab if you need help.**
+
+```{r}
+# Answer:
+expon2 = rexp(10000, 2)
+expon2df = data.frame(expon2)
+ggplot(expon2df) + 
+  geom_density(aes(x = expon2), bw = .75, color = "blue") +
+  ggtitle('Density Plot of 10,000 Random Exponential Values')
+
+```
+
+**iii) Below is a vector of 10,000 randomly generated binomial random variables. Can you explain why the two output values from the chunk below (from mean(randBinom <= 4) and pbinom(4, 10, 0.25)) are remarkably close to each other?**
+
+```{r}
+set.seed(19) # don't worry about this, it's just so we can have replicable results
+randBinom <- rbinom(10000, 10, 0.25)
+
+mean(randBinom <= 4)
+pbinom(4, 10, 0.25)
+```
+
+`pbinom` in the above example is computing the probability that x is less than or equal to 4 when n = 10 and p = 0.25. `rbinom` generates 10000 random samples of size 10 with p = 0.25. `mean(randBinom <= 4)` is calculating what portion of the generated samples is less than or equal to 4, which should ruffly align with the probability of any particular sample being less than or equal to 4, or the probability of x <= 4, as `pbinom` calculated.
+
+
+
+**iv) The expected value of a binomial distribution is np. Generate a random sample of 10,000 values from a binomial distribution with n = 100 and p = 0.30. What is the expected value of this distribution? Does that match up with the mean of your random sample?**
+
+
+```{r}
+# Answer:
+bin = rbinom(10000, 100, .3)
+mean(bin)
+
+```
+
+The expected value for this distribution should be 100*.3 = 30. This does match up with the mean of my random sample as my mean is 30.027.
+
+
+**v) Suppose X has a normal distribution with mean of 50 and variance of 2. Compute the following probabilities: P(X <= 49), P(X<= 51), and P(X <= 50).**
+
+```{r}
+# Answer:
+probs = c("P(X <= 49)" = pnorm(49, 50, 2), "P(X<= 51)" = pnorm(51, 50, 2), "P(X <= 50)" = pnorm(50, 50, 2))
+probs
+
+```
+
+
+

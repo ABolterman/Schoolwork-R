@@ -1,0 +1,157 @@
+---
+title: "Stat 305 Lecture 9 EDA Part 2 Exercises: Covariation, with Modifications by Thomas Fiore"
+author: "Solutions by Abigail Bolterman"
+date:   "2022/10/06"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+# load the library dplyr here
+library(dplyr)
+# load the library ggplot2 here
+library(ggplot2)
+# load the library nycflights13 here
+library(nycflights13)
+```
+
+## Exercises
+
+## Use the `diamonds` data set and `flights` data set to answer each of the following. 
+
+**1) Recall from Lecture 9: To understand the covariation between categorical variables, we can create a contingency table which displays the counts of each category for one variable within the categories of the second variable. Recall the contingency table from Lecture 9 showing the covariation between the two categorical variables `color` and `cut` in the `diamonds` data set, pasted below. Recall also the visualization of the contingency table, pasted below.**
+
+```{r}
+# contingency table from Lecture 9 
+diamonds %>% count(color, cut)
+# visualization of contingency table from Lecture 9
+diamonds %>%
+  count(color, cut) %>%
+  ggplot(aes(x=cut, y=color)) + # beware of the reversed order here to match table axes
+    geom_tile(aes(fill=n))
+```
+
+**This visualization has a drawback: the groups according to `color` have very different sizes, so we don't see the distribution of `cut` with within `color`. Recreate the contingency table to have a new column called `cutproportionsincolorlevel` that shows the `cut` level proportions within each individual `color` level. Hint: use `group_by` and `mutate`, without `summarize`.** 
+
+```{r}
+# answer: contingency table with additional column cutproportionsincolorlevel
+diamonds %>%
+  count(color, cut) %>%
+  group_by(color) %>%
+  mutate(cutproportionsincolorlevel = n/sum(n)) 
+
+```
+**Make the visualization again but use the new column for the shading.**
+
+```{r}
+# answer with revised visualization 
+diamonds %>%
+  count(color, cut) %>%
+  group_by(color) %>%
+  mutate(cutproportionsincolorlevel = n/sum(n))%>%
+  ggplot(aes(x=cut, y=color)) +
+    geom_tile(aes(fill=cutproportionsincolorlevel))
+
+```
+**Compare the shading of `ideal` in the two graphs. What can you now see in the new graph that you couldn't see before?**
+
+**Answer:** The ideal column is a much brighter color, and the proportion of ideal cuts is very high within each color, around 0.4, which we couldn't see before.
+
+**Now repeat the process and modify the code to show the distribution of `color` within `cut.` Remember to properly name the new column and remember to use the new name in your plot, it should NOT be `cutproportionsincolorlevel`.**
+
+```{r}
+# answer: contingency table with additional column
+diamonds %>%
+  count(color, cut) %>%
+  group_by(cut) %>%
+  mutate(colorproportionsincutlevel = n/sum(n))
+
+```
+
+
+```{r}
+# answer with revised visualization 
+diamonds %>%
+  count(color, cut) %>%
+  group_by(cut) %>%
+  mutate(colorproportionsincutlevel = n/sum(n)) %>%
+  ggplot(aes(x=cut, y=color)) +
+    geom_tile(aes(fill=colorproportionsincutlevel))
+
+```
+
+
+**2) Consider only the flights with the destinations "ATL", "ORD", "FLL", or "IAD". Make a table of average flight departure delays for these four destinations, averaged over each month.  Then use `geom_tile()` to visualize how average flight delays vary among these four destinations and month of year.**
+
+
+```{r message=FALSE}
+# answer table
+flights %>%
+  filter(dest %in% c("ATL","ORD","FLL","IAD")) %>%
+  group_by(dest, month) %>%
+  summarize(avgdepdelay = mean(dep_delay, na.rm=TRUE))
+
+
+```
+
+
+
+```{r message=FALSE}
+# answer plot
+flights %>%
+  filter(dest %in% c("ATL","ORD","FLL","IAD")) %>%
+  group_by(dest, month) %>%
+  summarize(avgdepdelay = mean(dep_delay, na.rm=TRUE)) %>%
+  ggplot(aes(x=factor(month), y=dest, fill=avgdepdelay)) +
+  geom_tile()+
+  xlab("Month")+
+  ylab("Destination")
+
+```
+
+**Do you notice any seasonal patterns?**
+
+**Answer:** For these four airports, there seems to be longer delays during the summer months, likely because that's when the most people travel. December likely has higher delays for the same reason, with many people traveling for the holidays.
+
+**3) Visualize the distribution of `carat`, partitioned by `price`. Hint: we did this exact thing in the revised lecture notes. You simply need to read it again carefully and put the plot here, and understand it.**
+
+```{r}
+ggplot(diamonds, aes(x = price, y = carat)) +
+  geom_boxplot(aes(  group = cut_width(price, 2000)  )) +
+  ggtitle("Box Plots of Weight at Various Price Levels")
+
+```
+
+
+**4) How does the `price` distribution of very heavy diamonds compare to the `price` distribution of very light diamonds? Is it as you expect, or does it surprise you? Hint: to answer this question, should you use the plot in the previous problem or a different plot in the notes? If you need to use a different plot in the revised Lecture 9 notes, paste the plot here and answer the question. If the previous plot is sufficient, leave this codeblock blank and answer the question.**
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_boxplot(aes(group = cut_width(carat, 0.1))) +
+  ggtitle("Box Plots of Price at Various Weight Levels")
+```
+
+**Answer:** Heavy diamonds are generally worth more than lighter, and have a wider range of prices, which is pretty much what I expected.
+
+**5) Combine two of the techniques you've learned to visualize the combined distribution of `cut`, `carat`, and `price`.**
+
+```{r}
+ggplot(diamonds, aes(cut, price, color = cut_width(carat, 1))) +
+  geom_boxplot() +
+  guides(color=guide_legend(title="Carat")) +
+  xlab("Cut Quality") +
+  ylab("Price") +
+  ggtitle("Distribution of Cut and Price, colored by Carat")
+```
+
+
+**6) This problem about the `Violations` data set in the `mdsr` package has been cut because the `mdsr` package is not on CRAN so students cannot install it. So nothing to do here.**
+
+
+

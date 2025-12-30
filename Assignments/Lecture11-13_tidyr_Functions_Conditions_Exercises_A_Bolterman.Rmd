@@ -1,0 +1,181 @@
+---
+title: "Stat 305 Lectures 11 - 13 Exercises: tidyr, Functions, Conditions"
+author: "Solutions by Abigail Bolterman"
+date:   "2022/10/18"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+# load the library tidyr here
+library(tidyr)
+```
+
+## Exercises
+
+**1) Why does this code fail? How can you fix it.**
+```{r}
+# recall table4a
+table4a
+#table4a %>% gather(1999,2000, 
+#                   key="year",
+#                   value="cases")
+table4a %>% gather(`1999`,`2000`, 
+                   key="year",
+                   value="cases")
+
+```
+
+Answer: It fails because 1999 and 2000 do not have backticks around them.
+
+
+
+**2) Tidy the simple tibble below. Do you need to spread or gather it? What are the variables?**
+```{r}
+preg <-tribble(~pregnant, ~male, ~female, 
+               "yes", NA, 10,
+               "no", 20, 12)
+
+preg %>% gather(`male`, `female`,
+                key = "gender",
+                value = "count")
+
+```
+
+**Answer:** It needs to be gathered. 'Male' and 'female' are both of the same variable, gender.
+
+**3) What do the `extra` and `fill` arguments do in `separate()`? Experiment with the various options for the following two toy datasets?**
+```{r}
+tibble(x=c("a,b,c",
+           "d,e,f,g",
+           "h,i,j")) %>%
+  separate(x, c("one","two","three"))
+
+tibble(x=c("a,b,c",
+           "d,e",
+           "f,g,i")) %>%
+  separate(x, c("one","two","three"))
+```
+
+```{r}
+tibble(x=c("a,b,c",
+           "d,e,f,g",
+           "h,i,j")) %>%
+  separate(x, c("one","two","three"), extra = "drop")
+
+tibble(x=c("a,b,c",
+           "d,e",
+           "f,g,i")) %>%
+  separate(x, c("one","two","three"), extra = "drop")
+```
+
+```{r}
+tibble(x=c("a,b,c",
+           "d,e,f,g",
+           "h,i,j")) %>%
+  separate(x, c("one","two","three"), extra = "merge")
+
+tibble(x=c("a,b,c",
+           "d,e",
+           "f,g,i")) %>%
+  separate(x, c("one","two","three"), extra = "merge")
+```
+
+```{r}
+tibble(x=c("a,b,c",
+           "d,e,f,g",
+           "h,i,j")) %>%
+  separate(x, c("one","two","three"), fill = "right")
+
+tibble(x=c("a,b,c",
+           "d,e",
+           "f,g,i")) %>%
+  separate(x, c("one","two","three"), fill = "right")
+```
+
+
+```{r}
+tibble(x=c("a,b,c",
+           "d,e,f,g",
+           "h,i,j")) %>%
+  separate(x, c("one","two","three"), fill = "left")
+
+tibble(x=c("a,b,c",
+           "d,e",
+           "f,g,i")) %>%
+  separate(x, c("one","two","three"), fill = "left")
+```
+
+
+**Answer:** The `extra` argument determines what happens when there are too many values if `sep` is a character vector. It can drop the extra values, with or without a warning, or merge them. The `fill` argument controls what happens when there are too few values if `sep` is a character vector. It can fill from either the left or the right (which is the default), with or without a warning.
+
+**4) Both `unite` and `separate` have a remove argument. What does it do? Why would you set it to `FALSE`?**
+
+In both `unite` and `separate` it removes input column from output data frame. You'd set it to false to see the inputs.
+
+## Writing Functions and Conditional Statements 
+
+Consider the dataset `airquality` for questions 5-7, which is already part of R. 
+
+
+
+**5. Filter the dataset to only contain observations with a temperature greater than the average temperature. Then, create a new variable that is a ratio of ozone and temperature.**
+
+```{r}
+# Answer:
+df = airquality %>%
+  filter(Temp>mean(Temp)) %>%
+  mutate(ratio = Ozone/Temp)
+
+knitr::kable(head(df))
+```
+
+**6. Write a function that takes a vector of days as input, then groups by days and computes the average numeric `Ozone` (ppb). For example, if the input were `c(1, 3, 5)`, the function should output the average `Ozone` (ppb) for days 1, 3, and 5.**
+
+```{r}
+# Answer:
+avg_ozone <- function(v) {
+  #Takes in a vector v of days of the month and returns a data frame of 
+  #the days and the the average ozone on those days from May to Sept.
+  df <- airquality %>%
+    filter(Day %in% v) %>%
+    group_by(Day) %>%
+    summarise(mean_ozone = mean(Ozone,  na.rm = TRUE))
+  knitr::kable(head(df))
+}
+v = c(1,3,5)
+avg_ozone(v)
+
+
+```
+
+**7. Write a function that takes one of the column names of the data frame as input, and then standardizes that variable and makes it a new variable in the data frame. Recall that standardizing a variable involves subtracting the mean from each observation and divide the result by the standard deviation.**
+
+For example, if the input were Ozone, you want the function to create a new variable in the dataframe that contains the standardized Ozone values.**
+
+```{r}
+# Answer:
+standardize_collumn <- function(dataframe, column){
+  # This function takes a data frame and a column name.
+  # It creates a new data frame and adds a new column
+  # whose values are the standardized values of the inputed column.
+  df = dataframe
+  df[ ,paste("Standardized", column, set="")] = 
+    (df[[column]] - mean(df[[column]], na.rm=TRUE)) / sd(df[[column]], na.rm = TRUE)
+
+  knitr::kable(head(df))
+}
+
+standardize_collumn(airquality, "Ozone")
+
+```
+

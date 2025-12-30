@@ -1,0 +1,168 @@
+---
+title: "Stat 305 Lecture 2 ggplot2 Part 1 Exercises: Scatterplots, with Modifications by Thomas Fiore"
+author: "Solutions by Abigail Bolterman"
+date: '2022/09/13'
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+library(ggplot2)
+```
+
+
+## Warm Up
+
+Let's make a scatterplot to review Lecture 2 and labeling. 
+```{r fig.width=6, fig.height=4}
+ggplot(data=mpg) + 
+  geom_point(mapping = aes(x=displ, y=hwy, color=class)) +
+  ggtitle('Highway MPG vs Engine Displacement for 38 Models of Cars') +
+  xlab('Engine Displacement (L)') +
+  ylab('Highway Miles per Gallon')
+
+```
+
+
+
+## Exercises
+
+**1) Explore the `diamonds` dataset inside the `ggplot2` package. How many rows and columns are in `diamonds`? How many variables are there of which type (categorical, numerical)?**
+
+**Use the commands `dim` and `str` in the code chunk. In the console also use `?` to learn what the variables are.**
+
+
+```{r}
+dim(diamonds)
+str(diamonds)
+
+```
+
+
+Answer: There are 53,940 rows and 10 columns. There are 3 categorical variables and 7 numerical variables.
+
+
+
+
+**2) Make a scatterplot of `price` against `carat`. Remember, the terminology "`var1` against `var2`" means the first variable `var1` is on the vertical axis and the second variable `var2` is on the horizontal axis, the same order as when you read the labelled graph from left to right, but not the same order as when you type in the command.** 
+
+**Use `ggtitle` to give the graph the title "Scatterplot of Price against Weight". **
+
+**Label the axes with `xlab("Weight in Carats")` and `ylab("Price in US Dollars")`. From now on, always give your graphs a title and axis labels, make it a habit.**
+
+**In the code chunk parameters type in `fig.width=6, fig.height=4` so that the graph is not too large. Your code block should begin as follows. `  ```{r fig.width=6, fig.height=4}  `** 
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+**Explain why the relationship is a positive association, i.e. explain why there is an upwards trend as we look from left to right.**
+
+Answer: As the weight of the diamonds increases, the price of the diamonds also increases.
+
+**Explain why you can see a lot of dots at whole numbers of carats, almost like a vertical boundary line.** 
+
+Answer: More diamonds are going to be cut to nice weights as their more likely to appeal to buyers.
+
+
+**3) What happens when you make a scatterplot of `cut` versus `color`? Remember to give it a title. Why is the plot not useful? Hint: consider the variable types (in the statistical sense of variable, not programming sense).**
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=color, y=cut)) +
+  ggtitle('Scatterplot of Cut against Color') +
+  xlab('Color') +
+  ylab('Cut')
+```
+
+Answer: Because both cut and color are categorical variables, there are only a few categories that the diamond can fall into for both variable, 7 for color and 5 for cut. Because of this, there are only 35 color-cut combinations and multiple diamonds are going to have the same combination and they overlap.
+
+
+**4) What has gone wrong with this code? Why are the points not blue?**
+
+```{r fig.width=3, fig.height=3}
+ggplot(data=diamonds) + 
+  geom_point(mapping=aes(x=carat, y=price, color="blue"))
+```
+
+
+Answer:  Color can't be added in the aes() command, as it will simply add it as another set of data that would be distinguished by the different colors.
+
+
+**5) In Exercise 2 you made a scatterplot of `price` against `carat`. Copy and paste that code to here. Then inside of the aesthetics put the `cut` variable inside the `color` option. In the terminology of ggplot2, we say we are "mapping the `cut` variable to the `color` aesthetic".**  
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price, color=cut)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+**Explain the pattern you see.**
+
+Answer: With two diamonds of the same weight, as the cut increases in quality, the price increases. There are more high quality cuts, as their more likely to be bought by customers.
+
+**Copy and paste the code for your previous graph, but map `cut` to `size` to make another graph, and then also map `cut` to `shape` to make a third graph. Notice these two graphs are useless, you cannot see anything. Clearly, `color` is the better aesthetic to use, as we see above. This illustrates that you have to try various plots, and some will be useless and some will be magnificent. Of course you only show the magnificent ones to stakeholders and decision makers!**
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price, size=cut)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price, shape=cut)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+
+**6) In Exercise 2 you made a scatterplot of `price` against `carat`. Copy and paste that code to here three times. Then inside of the aesthetics put the `depth` variable inside `color`, `size` and `shape` (one in each graph). Notice that `depth` is a continuous numerical variable, whereas the previous exercise used the categorical variable `cut` in these aesthetics.** 
+
+**How do these aesthetics `color`, `size` and `shape` behave differently (or similarly) for categorical vs. continuous numerical variables?**
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price, color=depth)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+```{r fig.width=6, fig.height=4}
+ggplot(data=diamonds) + 
+  geom_point(mapping = aes(x=carat, y=price, size=depth)) +
+  ggtitle('Scatterplot of Price against Weight') +
+  xlab('Weight in Carats') +
+  ylab('Price in US Dollars')
+```
+
+```{r}
+#ggplot(data=diamonds) + 
+#  geom_point(mapping = aes(x=carat, y=price, shape=depth)) +
+#  ggtitle('Scatterplot of Price against Weight') +
+#  xlab('Weight in Carats') +
+#  ylab('Price in US Dollars')
+```
+
+
+Answer:  Shape gives an error, as depth is a continuous numerical variable and there's no way to show that with shapes. Color and size produce graphs, but because there is so much data it is impossible to make out the differences between the data points, making the graph practically useless. Color, shape, and size are best used for categorical variables. Discrete numerical variables might also work, depending on the range of the numbers. 
+
+
+
+
