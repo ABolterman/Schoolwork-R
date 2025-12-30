@@ -1,0 +1,226 @@
+---
+title: "Final Project Other Questions"
+author: "Abigail Bolterman"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+## Question 1
+
+Base Simulation Coding
+
+```{r}
+infection_sim = function(alpha, beta, initial_susceptable_S,initial_infected, simulation_length_t_max){
+  S = initial_susceptable_S
+  alpha = alpha
+  beta = beta
+  I = initial_infected
+  R = 0
+  N = S+I
+  
+  times = c(0:simulation_length_t_max)
+  s_values = i_values= r_values = c(rep(0, length(times)))
+  s_values[1] = S
+  i_values[1] = I
+  r_values[1] = R
+  
+  for (i in times){
+    simlist = rbinom(S, 1, 1-(1-alpha)^(I))
+    new_infected = sum(simlist) # Number of new infected
+    
+    simlist = rbinom(I, 1, beta)
+    new_recovered = sum(simlist) #number of people recovered
+    
+    R = new_recovered + R
+    S = S - new_infected
+    I = N + 1 - R - S
+    
+    s_values[i+1] = S
+    i_values[i+1] = I
+    r_values[i+1] = R
+    
+    if (I == 0){
+      return(i)
+    }
+  }
+  df = data.frame(times, s_values, i_values, r_values)
+  ggplot(df, aes(x = times)) +
+    geom_line(aes(y = s_values), color = "blue") + 
+    geom_line(aes(y = i_values), color = "red3") +
+    geom_line(aes(y = r_values), color = "green3") +
+    ylab("Number of People")+
+    xlab("Time")
+}
+
+infection_sim(0.0005, 0.1, 1000, 5, 1000)
+
+```
+
+### Part (a)
+
+Different numbers of initial Number infected, alpha = 0.0005
+```{r}
+# Simulation Code
+sim_diff_init_infected = function(alpha, beta, initial_susceptable_S,initial_infected){
+  S = initial_susceptable_S
+  I = initial_infected
+  R = 0
+  N = S+I
+  i_vector = c(0,0,0,0,0,0,0,0,0,0)
+  for (h in c(1:10)){
+    for (i in c(1:1000000)){
+      simlist = rbinom(S, 1, 1-(1-alpha)^(I))
+      new_infected = sum(simlist) # Number of new infected
+      
+      simlist = rbinom(I, 1, beta)
+      new_recovered = sum(simlist) #number of people recovered
+      
+      R = new_recovered + R
+      S = S - new_infected
+      I = N + 1 - R - S
+  
+      if (I == 0){
+        i_vector[h] = i
+        break
+      }
+    }
+  }
+  return(mean(i_vector))
+}
+
+disease_length = data.frame (beta0.1 = c(rep(0, 100)), beta0.2 = c(rep(0, 100)),
+                             beta0.3 = c(rep(0, 100)), beta0.4 = c(rep(0, 100)), 
+                             initial_infected = c(rep(0,100)))
+j=10
+while(j <= 1000){
+  disease_length[[5]][j/10] = j
+  for(k in c(1:4)){
+    disease_length[[k]][j/10] = sim_diff_init_infected(0.0005, k/10, 10000, j)
+  }
+  j = j+10
+}
+
+ggplot(disease_length, aes(x = initial_infected))+
+    geom_line(aes(y = beta0.1), color = "skyblue1", size = 1) + 
+    geom_line(aes(y = beta0.2), color = "steelblue1", size = 1) +
+    geom_line(aes(y = beta0.3), color = "blue", size = 1) +
+    geom_line(aes(y = beta0.4), color = "blue4", size = 1) +
+    ylab("Length of Disease")+
+    xlab("Initial Number of People Infected")
+
+
+```
+
+
+
+
+### Part (b)
+
+```{r}
+infection_sim = function(alpha, beta, initial_susceptable_S,initial_infected,
+                         simulation_length_t_max){
+  S = initial_susceptable_S
+  alpha = alpha
+  beta = beta
+  I = initial_infected
+  R = 0
+  N = S+I
+  
+  times = c(1:simulation_length_t_max)
+  s_values = i_values= r_values = c(rep(0, length(times)))
+  
+  for (i in times){
+    simlist = rbinom(S, 1, 1-(1-alpha)^(I))
+    new_infected = sum(simlist) # Number of new infected
+    
+    simlist = rbinom(I, 1, beta)
+    new_recovered = sum(simlist) #number of people recovered
+    
+    R = new_recovered + R
+    S = S - new_infected
+    I = N + 1 - R - S
+    
+    s_values[i] = S
+    i_values[i] = I
+    r_values[i] = R
+    
+  }
+  return(i_values)
+}
+
+infection_realizations = data.frame()
+for(j in c(1:20)){
+  i_values = infection_sim(0.0005, 0.3, 10000, 3, 100)
+  time = 0
+  for(value in i_values){
+    time = time + 1
+    frame = data.frame(j, value, time)
+    names(frame) = c("trial_number", "i_value", "time")
+    infection_realizations = rbind(infection_realizations, frame)  
+  }
+}
+
+ggplot(infection_realizations, aes(x = time, y = i_value))+
+  geom_line()+
+  facet_wrap(infection_realizations$trial_number)+
+  xlab("Time")+
+  ylab("Number of People Currently Infected")
+
+```
+
+
+
+```{r}
+infection_sim = function(alpha, beta, initial_susceptable_S,initial_infected,
+                         simulation_length_t_max){
+  S = initial_susceptable_S
+  alpha = alpha
+  beta = beta
+  I = initial_infected
+  R = 0
+  N = S+I
+  times = c(1:simulation_length_t_max)
+  s_values = i_values= r_values = c(rep(0, length(times)))
+  for (i in times){
+    simlist = rbinom(S, 1, 1-(1-alpha)^(I))
+    new_infected = sum(simlist) # Number of new infected
+    
+    simlist = rbinom(I, 1, beta)
+    new_recovered = sum(simlist) #number of people recovered
+    
+    R = new_recovered + R
+    S = S - new_infected
+    I = N + 1 - R - S
+    
+    s_values[i] = S
+    i_values[i] = I
+    r_values[i] = R
+    df = cbind(s_values, i_values, r_values)
+  }
+  return(df)
+}
+infection_realizations = data.frame()
+for (j in c(1:20)){
+  time = c(1:100)
+  trial_number = c(rep(j, 100))
+  values = infection_sim(0.0005, 0.3, 10000, 3, 100)
+  values = cbind(time, trial_number, values)
+  infection_realizations = rbind(infection_realizations, values)
+}
+
+ggplot(infection_realizations, aes(x = time))+
+  geom_line(aes(y = s_values), color = "blue") + 
+  geom_line(aes(y = i_values), color = "red3") +
+  geom_line(aes(y = r_values), color = "green3") +
+  facet_wrap(infection_realizations$trial_number)+
+  xlab("Time")+
+  ylab("Number of People")
+```
+
+

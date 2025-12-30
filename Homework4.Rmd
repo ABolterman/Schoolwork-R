@@ -1,0 +1,166 @@
+---
+title: "Homework 4"
+author: "Abigail Bolterman"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(dplyr)
+library(ggplot2)
+tree_data = Blowdown
+```
+
+## 12.1
+
+### 12.1.1
+
+```{r}
+table(tree_data$spp, tree_data$y)
+```
+
+
+### 12.1.2
+
+```{r}
+spruce_data = tree_data %>%
+  filter(spp == "black spruce")
+
+ggplot(spruce_data, aes(log(d), y)) +
+  geom_point()+
+  geom_smooth()
+```
+
+The graph does not support fitting a logistic model.
+
+### 12.1.3
+
+```{r}
+bern_model = glm(y ~ log(d), family = binomial, data = spruce_data)
+summary(bern_model)$coeff
+```
+
+
+### 12.1.4
+
+```{r}
+bern_model = glm(y ~ log(d) + (log(d))^2, family = binomial, data = spruce_data)
+summary(bern_model)$coef
+
+
+
+```
+
+
+
+## 12.3
+
+### 12.3.1
+
+```{r}
+cow_data = Downer
+table(cow_data$outcome, cow_data$myopathy)
+
+# Fraction survived absent: 49/127
+49/127
+# Fraction survived absent: 6/95
+6/95
+```
+
+
+### 12.3.2
+
+```{r}
+cow_model = glm(outcome ~ myopathy, family = binomial, data = cow_data)
+summary(cow_model)$coef
+```
+
+```{r}
+# Confidence Interval
+c(-2.232 - 0.459*(-4.86), -2.232 + 0.459*(-4.86))
+```
+
+At the base, the odds of a cow surviving is $exp(-.465)$. If a cow has myopathy present, the cow's odds of surviving is expected to increase by exp(-2.232).
+
+
+```{r}
+# myopathy = 0 == absent
+exp(-0.465)
+
+# myopathy = 1 == present
+exp(-0.465 -2.232)
+```
+
+The estimated probabilties of survival are close to the fractions in part 1.
+
+
+### 12.3.3
+
+```{r}
+cow_ck_model = glm(outcome ~ log(ck), family = binomial, data = cow_data)
+summary(cow_ck_model)$coef
+```
+
+For a 1 unit increase in ck, the odds of survival are expected to decrease by 0.6117.
+
+### 12.3.4
+
+```{r fig.width=3.5, fig.height=3}
+cow_multiple_model = glm(outcome ~ myopathy + log(ck) + myopathy:log(ck), 
+                         family = binomial, data = cow_data)
+summary(cow_multiple_model)$coef
+anova(cow_multiple_model)
+plot(cow_multiple_model)
+```
+
+
+
+## 12.5
+
+### 12.5.1
+
+```{r}
+donner_data = Donner
+
+table(donner_data$sex, donner_data$y)
+
+# Total females = 35, total males = 56
+
+10/35
+32/56
+```
+
+The survival rates were not the same, as the survival rate for men is twice as high as women. 
+
+### 12.5.2
+
+```{r}
+age_model = glm(y ~ age, family = binomial, data = donner_data)
+summary(age_model)$coef
+```
+
+As age increases, the probability of death increases. A 1 unit increase in age increases the probability of death by $exp(-.0369) = .964$.
+
+### 12.5.3
+
+```{r fig.width=3.5, fig.height=3}
+plot(age_model)
+```
+
+
+
+### 12.5.4
+
+```{r}
+donner_multi_model = glm(y ~ age + age^2 + sex + status, family = binomial, data = donner_data)
+
+summary(donner_multi_model)$coef
+
+```
+
+If you were old, female, hired help, or married, you were more likely to die. 
+
+
+

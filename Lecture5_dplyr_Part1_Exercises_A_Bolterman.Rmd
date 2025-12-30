@@ -1,0 +1,113 @@
+---
+title: "Stat 305 Lecture 5 dplyr Part 1 Exercises: `filter` and Missing Values, with Modifications by Thomas Fiore"
+author: "Solutions by Abigail Bolterman"
+date:   "   "
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+# load the library dplyr here
+library(dplyr)
+# load the library nycflights13 here
+library(nycflights13)
+```
+
+## Exercises
+
+**For the following exercises you need to use the `filter()` command from the package `dplyr`. Use the `flights` data set in the package `nycflights13` to do the following exercises. Look at the documentation in RStudio to remind yourself of the variables, their values, their units, and their peculiarities. Then look at the data set using `str()` and `head()`.**
+
+```{r}
+# look at the data set here using two commands
+# don't use the View() command here! That goes in console.  
+
+str(flights)
+head(flights)
+
+```
+
+
+**Tip: In all the following exercises, temporarily use `View()` to look at the result of filtering in your answer, and confirm that your command is doing what you think it is doing. **
+
+**1) How many flights had an arrival delay of two or more hours?**
+
+
+```{r}
+
+dim(filter(flights, arr_delay >= 120))[1]
+
+```
+
+Answer with a complete sentence (with first letter capital and a period at the end): There are 10,200 flights with an arrival delay of two or more hours.
+
+**2) How many flights flew to Houston (IAH or HOU)?**
+
+```{r}
+
+dim(filter(flights, dest=="IAH" | dest=="HOU"))[1]
+
+```
+
+Answer with a complete sentence (with first letter capital and a period): There are 9,313 flights that flew to Houston.
+
+**3) How many flights were operated by United, American, or Delta?**
+
+```{r}
+
+dim(filter(flights, carrier=="AA"| carrier=="UA" | carrier=="DL"))[1]
+
+```
+
+Answer with a complete sentence (with first letter capital and a period at the end): United, American, and Delta airlines had 139,504 flights total.
+
+**4) How many flights arrived more than two hours late, but didn't leave late?**
+
+```{r}
+
+dim(filter(flights, arr_delay>=120 & dep_delay<=0))[1]
+
+```
+
+Answer with a complete sentence (with first letter capital and a period at the end): There were 29 flights that didn't depart late but did arrive late.
+
+**5) How many flights departed between midnight and 6am (exclusive)? Notice it says here exclusive. For this you will want to figure out how midnight is coded, and how 1 minute after midnight is coded... For that, you need to look at the data frame (or portions of it using commands in the console).**
+
+```{r}
+
+dim(filter(flights, dep_time>=0 & dep_time<600))[1]
+
+```
+Answer: There are 8,730 flights that departed between midnight and 6:00 am.
+
+**6) Another useful `dplyr` filtering function is `between()`. What does it do? Look at the documentation in RStudio (and the examples therein to find the relevant example, and paste the relevant example into the console to see what it does).** 
+
+**Use `between()` to write simple code to answer Exercise 5.**
+
+```{r}
+
+dim(filter(flights, between(dep_time, 1, 599)))[1]
+
+```
+Answer (what does `between` do?): The function `between` lets you set the upper and lower inclusive bounds for a comparison using only one conditional, unlike in 5 where you had to use two.
+
+
+Answer (how many flights between midnight and 6am exclusive?): There are 8,730 flights that left between midnight and 6am.
+
+
+**7) How many flights have a missing `dep_time`? Notice that the notes for Lecture 5 have additional discussion about missing values that was not covered in the video. You must read the additional discussion and scroll all the way down.**
+
+
+```{r}
+
+sum(is.na(flights$dep_time))
+
+```
+
+Answer:  There are 8255 flights with missing departure times.
+
+

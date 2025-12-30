@@ -1,0 +1,202 @@
+---
+title: 'Stat 305 Lecture 1 Part 1 Exercises: Data Types, Vectors, Debugging, Vectorization, and Coercion, by Thomas Fiore'
+author: "Solutions by Abigail Bolterman"
+date: '2022/09/11'
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Types (Modes) of Scalars
+
+We are primarily interested in 4 *modes* of scalars in R. 
+
+* **Logical (aka Boolean):** `TRUE` and `FALSE`, or equivalently `T` and `F`
+
+* **Integer:** whole numbers such as -100, -1, 0, 1, 55, but with an L appended to indicate integer, so `-100L`, `-1L`, `0L`, `1L`, `55L`  
+
+* **Double (aka Float):** real numbers, such as -100, -1, 0, 1, 1.0, pi, .78, 34/59 
+
+* **Character (aka String):** any sequence of symbols in single or equivalently double quotes, such as `"Hello"` or equivalently `'Hello'`, or such as `'12 abC'`. Notice: a space is a string character, and case matters.    
+
+To determine the type of an object, we use the command `typeof()`. 
+
+In the following codeblock, use the command `typeof()` to find the type of `F`, `TRUE`, `True`, `-500`, `-500L`, `3.14`, `1/2`, `'123'`, `"123"`, `123`, `abBA`. Do you get what you expect? Why or why not? 
+
+Remember to run the current line to the console with CTRL+Enter one-by-one to debug. Comment out anything that doesn't run, and put a note why not. 
+To run the entire codeblock to the console with CTRL+SHIFT+Enter. This allows to avoid knitting everytime. 
+
+
+```{r}
+typeof(F)
+typeof(TRUE)
+#typeof(True) 
+#This doesn't run because R sees "True" as a variable, but is hasn't been previously defined
+
+typeof(-500)
+typeof(-500L)
+typeof(3.14)
+typeof(1/2)
+typeof('123')
+typeof("123")
+typeof(123)
+#typeof(abBA)
+#This doesn't run for the same reason as True
+
+```
+
+In the next codeblock, ask if `123` and `'123'` are strings using the command `is.character()`. 
+
+```{r}
+is.character(123)
+is.character('123')
+```
+
+
+## Comparisons of Scalars
+
+In the following codeblock, compare `1` and `2` using `==`, `<=`, `>=`, and `!=`. After that, compare `'aa'` and `'ab'` using the same logical operators.  
+
+```{r}
+1 == 2
+1 <= 2
+1 >= 2
+1 != 2
+
+'aa' == 'ab'
+'aa' <= 'ab'
+'aa' >= 'ab'
+'aa' != 'ab'
+```
+
+## Creation of Vectors and Indexing into Vectors
+
+To create a vector we use `c()`. 
+
+In the following codeblock, create a vector with the elements 10, 20, 30, 40, and store it as `x`, and give the entries the names A, B, C, D. 
+
+```{r}
+x = c(10, 20, 30, 40)
+names(x) = c("A", "B", "C", "D")
+```
+
+In the following codeblock, access the subvector of `x` consisting of its first three entries in four ways: using `c()`, using `:` , using a vector of names, and using a vector of logicals. 
+
+
+```{r}
+x[c(1, 2, 3)]
+x[1:3]
+x[c("A","B","C")]
+x[c(T, T, T, F)]
+```
+
+Make a logical vector of true, false, true, false. 
+
+```{r}
+c(TRUE, FALSE, TRUE, FALSE)
+```
+
+
+## Comparisons of Vectors and Scalars
+
+Store the vector `1:10` as `x` and then obtain from it a vector of logicals that is `TRUE` when the entry is greater than 5, and `False` otherwise.   
+
+```{r}
+x = c(1:10)
+x[x>5]
+```
+
+## Coercion
+
+Add true, true, false. What do you get and why? 
+
+```{r}
+T+T+F
+
+# Adding true, true, false as booleans gives the result of 2. This is because R turned the booleans into integers, where TRUE is equal to 1 and FALSE is equal to 0, thus TRUE+TRUE+FALSE is the same as 1+1+0 which equals 2.
+```
+
+
+## Debugging
+
+What is wrong with the following? 
+`'1'+'1'`
+Type it and try to debug it based on the error message. 
+
+
+In your data set you have the following values, one of which is a missing value. You want to take the mean as follows, but it doesn't give you the mean! Try it. Figure out how to fix it...this requires looking something up using the help feature in RStudio, without google... 
+
+```{r}
+x=c(1,2,NA,4)
+mean(x, na.rm = TRUE)
+
+```
+
+*Actually: This isn't a bug, it is a feature! R does this on purpose to warn us about missing data!* 
+
+Fix it so that we do get the mean of the non-missing values. 
+## Vectorization 
+
+Add the two vectors `(4,5,6)` and `(10,20,30)` elementwise. 
+```{r}
+c(4,5,6) + c(10,20,30)
+```
+
+Multiply the two vectors `(4,5,6)` and `(10,20,30)` elementwise. 
+```{r}
+c(4,5,6) * c(10,20,30)
+```
+
+Make a logical vector that indicates everywhere the vector `(7,1,1,8,9,1,1)` has a `1`. 
+```{r}
+x = c(7,1,1,8,9,1,1)
+x == 1
+```
+
+Apply the natural logarithm elementwise to the vector `(1,10,20)`.
+```{r}
+log(c(1,10,20))
+```
+
+
+## Coercion
+
+What type will the vectors `c(1L,1)` and `c('abc',TRUE,3.14)` have? Type it in to confirm your answer. 
+```{r}
+# c(1L,1) will be doubles, since the integer 1L will be turned into a double.
+typeof(c(1L,1))
+
+# c('abc',TRUE,3.14) will be a character.
+typeof(c('abc',TRUE,3.14))
+```
+
+
+Add true, true, false. What do you get and why? 
+```{r}
+T+T+F
+
+# Adding true, true, false as booleans gives the result of 2. This is because R turned the booleans into integers, where TRUE is equal to 1 and FALSE is equal to 0, thus TRUE+TRUE+FALSE is the same as 1+1+0 which equals 2.
+```
+
+
+
+## Application of Vector Coercion in the Data Set `mtcars`
+
+Read about the `mtcars` data set by typing `?mtcars` in the console. 
+
+View the `mtcars` data set by typing `View(mtcars)` in the console. 
+
+Find the *number* of cars in the `mtcars` data set with horsepower greater than 150. Hint: the column vector of horsepowers is `mtcars$hp`. 
+
+```{r}
+sum(mtcars$hp>150)
+```
+
+Find the *proportion* of cars in the `mtcars` data set with horsepower greater than 150. Hint: the column vector of horsepowers is `mtcars$hp`.
+
+```{r}
+mean(mtcars$hp>150)
+```

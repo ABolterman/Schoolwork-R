@@ -1,0 +1,263 @@
+---
+title: "Project"
+author: "Abigail Bolterman"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+Yukon, Northwest Territories, and New Brunswick are not represented in the dataset.
+
+AB = Alberta
+BC = British Columbia
+MB = Manitoba
+NB = New Brunswick
+NL = Newfoundland and Labrador
+NS = Nova Scotia
+ON = Ontario
+PE = Prince Edward Island
+QC = Quebec
+SK = Saskatchewan
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+travel_data = read.csv("canadian_travel_survey.csv")
+library(dplyr)
+library(ggplot2)
+library(psych)
+library(mosaic)
+```
+
+
+## Abigail Bolterman's Code
+
+```{r}
+str(travel_data)
+ 
+for (index in c(1,2,5:8,10)){
+  travel_data[[index]] = as.factor(travel_data[[index]])
+} 
+
+travel_data = travel_data %>%
+  mutate(logDistance = log(Distance), logCost = log(Cost))
+```
+
+```{r}
+numeric_data<-select_if(without_cost0, is.numeric)
+summary_stats = favstats(numeric_data[[1]])
+for(i in c(2:4)){
+  summary_stats = rbind(summary_stats, favstats(numeric_data[[i]]))
+}
+summary_stats
+```
+
+```{r}
+ggplot(travel_data, aes(log(Cost))) +
+  geom_histogram() + 
+  ggtitle("Transformed Histogram of Cost")
+```
+
+```{r}
+without_cost0 = travel_data %>%
+  filter(Cost != 0)
+
+```
+
+```{r}
+ggplot(travel_data, aes(x = log(Duration), y = log(Cost))) +
+  geom_point()
+ggplot(travel_data, aes(Duration))+
+  geom_density()
+
+```
+
+```{r}
+ggplot(travel_data, aes(x = Q, y = log(Cost))) +
+  geom_boxplot()
+```
+
+```{r}
+ggplot(without_cost0, aes(x = ProvO, y = log(Cost), fill = ProvO)) +
+  geom_boxplot()
+ggplot(travel_data, aes(ProvO)) +
+  geom_bar()
+table(travel_data$ProvO)
+
+ggplot(travel_data, aes(x = ProvO, y = log(Distance))) +
+  geom_boxplot() +
+  ggtitle("log(Province of Origin")
+```
+
+
+```{r}
+ggplot(without_cost0, aes(x = Reason, y = log(Cost))) +
+  geom_boxplot()+
+  ggtitle("log(Cost) versus Reason for Travel")
+```
+
+```{r}
+ggplot(without_cost0, aes(x = Age, y = log(Cost))) +
+  geom_boxplot() + 
+  ggtitle("log(Cost) versus Age of Survey Respondent")
+```
+
+```{r}
+ggplot(travel_data, aes(x = Gender, y = log(Cost))) +
+  geom_boxplot()
+```
+
+```{r}
+ggplot(without_cost0, aes(x = HHI, y = log(Cost))) +
+  geom_boxplot() +
+  ggtitle("log(Cost) versus Household Income of Respondent")
+```
+
+```{r}
+ggplot(travel_data, aes(x = Mode, y = log(Cost))) +
+  geom_boxplot()
+```
+
+```{r}
+without_cost0_cat = without_cost0
+without_cost0_cat[[4]] = as.factor(without_cost0_cat[[4]])
+
+ggplot(without_cost0_cat, aes(x = Duration, y = logCost)) +
+  geom_boxplot()+
+  xlab("Duration (Days)") +
+  ylab("log(Cost) (CAD)") +
+  ggtitle("Log(Cost) of Trip versus Duration of Trip")
+
+ggplot(without_cost0, aes(x = Duration, y = logCost)) +
+  geom_point() +
+  xlab("Duration (Days)") +
+  ylab("log(Cost) (CAD)") +
+  ggtitle("Log(Cost) of Trip versus Duration of Trip")
+
+
+```
+
+```{r}
+without_outliers = without_cost0 %>%
+   mutate(row_num = 0)
+for (i in c(1:4840)){
+  without_outliers$row_num[i] = i
+}
+
+
+model_duration = lm(log(Cost) ~ Duration, data = without_cost0)
+summary(model_duration)
+plot(model_duration)
+
+
+ggplot(without_outliers, aes(x = Duration, y = logCost)) +
+  geom_point()
+
+ggplot(without_cost0, aes(x = Duration, y = logCost))+
+  geom_point() +
+  geom_abline(slope = 0.115172, intercept = 5.488158, color = "red", linewidth = 1)
+
+```
+
+```{r}
+outliers_z = without_cost0 %>%
+  mutate(z_score = (Duration - 3.07)/3.82) %>%
+  filter(z_score < 2.7)
+model_duration_outliers = lm(log(Cost) ~ Duration, data = outliers_z)
+summary(model_duration_outliers)
+plot(model_duration_outliers)
+
+ggplot(outliers_z, aes(x = Duration, y = logCost))+
+  geom_point() +
+  geom_abline(slope = 0.211474, intercept = 5.233898, color = "red", linewidth = 1)
+
+```
+
+
+
+
+```{r}
+model = lm(logCost ~ Q + ProvO+ logDistance + Duration + Reason + Age  + Gender + HHI + Others + Mode, data = without_cost0)
+summary(model)
+anova(model)
+plot(model)
+```
+
+```{r}
+ggplot(without_cost0, aes(logDistance, logCost, color = Mode)) +
+  geom_point() +
+  xlab("Distance (km)")+
+  ylab("log(Cost) (CAD)")+
+  ggtitle("log(Cost) of Trip versus log(Distance) of Trip", subtitle = "Colored by Mode of transport")
+
+```
+
+
+```{r}
+ggplot(without_cost0, aes(logDistance, logCost, color = Mode)) +
+  geom_point() +
+  xlab("log(Distance) (km)")+
+  ylab("log(Cost) (CAD)")+
+  geom_abline(intercept = 2.96677, slope = 0.52452, color = "red", linewidth = 1) +
+  geom_abline(intercept = 2.96677+.40992, slope = 0.52452, color = "blue", linewidth = 1)
+ggplot(without_cost0, aes(logDistance, logCost, color = Mode)) +
+  geom_point() +
+  xlab("log(Distance) (km)")+
+  ylab("log(Cost) (CAD)") + 
+  ggtitle("log(Cost) versus log(Distance) Traveled", subtitle = "Colored by Mode of Transport")
+plot(model_duration)
+
+```
+
+
+```{r}
+mod = lm(Cost ~ Duration, data = outliers_z)
+summary(mod)
+```
+
+
+## Zach Altizer's Code
+
+```{r}
+ggplot(canada, aes(y = log(Distance), x = Others))+
+  geom_point()+
+  labs(y = "Log of Distance in Kilometers", x = "Number of Others Traveling With")+
+  ggtitle("Scatterplot of Distance and Other Travelers")+
+  geom_smooth(method = "lm", se = F)
+
+# Amount of Others Traveling with on Distance
+model1 = lm(log(Distance) ~ Others, canada)
+summary(model1)
+```
+
+
+```{r}
+ggplot()+
+  geom_histogram(aes(x = canada$Distance))+
+  labs(x = "Distance in Kilometers", y = "Count")+
+  ggtitle("Untransformed Histogram of Distance")
+
+# After transforming distance to log, the distribution becomes more normal
+ggplot()+
+  geom_histogram(aes(x = log(canada$Distance)))+
+  labs(x = "Log of Distance in Kilometers", y = "Count")+
+  ggtitle("Transformed Histogram of Distance")
+```
+
+```{r}
+ggplot(canada, aes(y = log(Distance), x = as.factor(Others)))+
+  geom_boxplot()+
+  labs(x = "Number of Others Traveling With", y = "Log Of Distance")+
+  ggtitle("Boxplots of Log of Distance vs Number of Others Traveling With ")
+
+summary(model1)
+
+```
+
+```{r}
+anova(model1)
+summary(model1)
+plot(model1)
+```
+
+
+

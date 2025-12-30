@@ -1,0 +1,492 @@
+---
+title: "327 Group Project"
+author: "Abigail Bolterman"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+
+
+
+
+
+# Tic-Tac-Toe - What percentage of games end in a win when random?
+
+X goes first
+
+```{r}
+options(digits = 4)
+tictactoe = function(){
+    probabilities = c(1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9)
+    board = c(" ", " ", " ", " ", " ", " ", " ", " ", " ")
+    win = 0
+    for(move_number in c(1:9)){
+      move = sample(1:9, 1, prob = probabilities)
+      if(move_number %% 2 == 1){
+        board[move] = "X"
+      }
+      if(move_number %% 2 ==0){
+        board[move] = "O"
+      }
+      probabilities[move] = 0
+      for(j in c(1:9)){
+        if(probabilities[j] != 0){
+          probabilities[j] = 1/(9-move_number)
+        }
+      }
+      win = win_check(board)
+      if(win == 1){
+        return("Win")
+        break
+      }
+    }
+  return("Tie")
+}
+
+simlist = replicate(1000,tictactoe())
+simlist_df = as.data.frame(simlist)
+simlist_df = simlist_df %>%
+  mutate(win_tie = simlist)
+simlist_df$win_tie = as.factor(simlist_df$win_tie)
+mean(simlist)*100
+
+ggplot(simlist_df, aes(win_tie)) +
+  geom_bar()+
+  xlab("Win or Tie")
+```
+
+# Tic-Tac-Toe - What Turn wins? (of winning games?)
+
+Note: each "turn" is one player placing an icon, so "O"s first turn is considered the second. So no one can win until the 5th turn at the earliest.
+
+```{r}
+set.seed(1)
+tictactoe_what_turn = function(){
+    probabilities = c(1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9)
+    board = c(" ", " ", " ", " ", " ", " ", " ", " ", " ")
+    win = 0
+    for(move_number in c(1:9)){
+      move = sample(1:9, 1, prob = probabilities)
+      if(move_number %% 2 == 1){
+        board[move] = "X"
+      }
+      if(move_number %% 2 ==0){
+        board[move] = "O"
+      }
+      probabilities[move] = 0
+      for(j in c(1:9)){
+        if(probabilities[j] != 0){
+          probabilities[j] = 1/(9-move_number)
+        }
+      }
+      win = win_check(board)
+      if(win == 1){
+       return(move_number)
+      }
+    }
+    return("Tie")
+}
+
+simlist = replicate(1000,tictactoe_what_turn())
+turn_win = as.data.frame(simlist)
+turn_win = turn_win %>%
+  mutate(turn_won = as.factor(simlist))
+
+ggplot(turn_win, aes(turn_won)) +
+  geom_bar() +
+  xlab("Turn Won")
+
+mean(simlist, na.rm = TRUE)
+table(simlist)
+
+```
+
+# Tic-Tac-Toe - Who wins more?
+
+Expected to be `X` since they go first. How big of difference? Success(1) = X win
+
+```{r}
+set.seed(1)
+tictactoe_who_wins = function(){
+    probabilities = c(1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9, 1/9)
+    board = c(" ", " ", " ", " ", " ", " ", " ", " ", " ")
+    win = 0
+    for(move_number in c(1:9)){
+      move = sample(1:9, 1, prob = probabilities)
+      if(move_number %% 2 == 1){
+        board[move] = "X"
+      }
+      if(move_number %% 2 ==0){
+        board[move] = "O"
+      }
+      probabilities[move] = 0
+      for(j in c(1:9)){
+        if(probabilities[j] != 0){
+          probabilities[j] = 1/(9-move_number)
+        }
+      }
+      win = win_check(board)
+      if(win == 1){
+        if(move_number %% 2 == 1){
+          return("First Player")
+        }
+        return("Second Player")
+      }
+    }
+    return("Tie")
+}
+
+simlist = replicate(1000,tictactoe_who_wins())
+who_win = as.data.frame(simlist)
+who_win = who_win %>%
+  mutate(who_won = as.character(simlist))
+
+
+ggplot(who_win, aes(who_won)) +
+  geom_bar() +
+  xlab("Person who Won")
+
+table(who_win)
+mean(simlist, na.rm = TRUE) *100
+```
+
+# Start of simulated
+
+```{r}
+move_sim = function(board, move_num){
+  players_turn = move_num %% 2  
+  probabilities = c(rep(0,9))
+  empty_spots = c()
+  move_wins = c(rep(0,9))
+    #Finds empty spots on board
+  for(i in c(1:9)){
+    if(board[i] == " "){
+      empty_spots[length(empty_spots)+1] = i
+    }
+  }
+  num_empty = length(empty_spots)
+  for(value in empty_spots){
+    probabilities[value] = 1/(num_empty)
+  }
+  if(num_empty==1){
+    return(probabilities)
+  }
+    #Creates probability vector for random games
+  num_empty_initial = num_empty
+  for(empty_spot in empty_spots){
+    probabilities_copy = probabilities
+    empty_spots_copy = empty_spots
+    wins = 0
+    move = empty_spot
+    board_copy = board
+    #Places mark on this loop's empty spot & updates probability vector
+    if(move_num %% 2 == 1){
+      board_copy[move] = "X"
+    }
+    if(move_num %% 2 ==0){
+      board_copy[move] = "O"
+    }
+    #Loops over every empty spot on the board
+    num_empty = num_empty_initial - 1
+    probabilities_copy[move] = 0
+    for(j in c(1:9)){
+      if(probabilities_copy[j] != 0){
+        probabilities_copy[j] = 1/(num_empty)
+      }
+    }
+    move_num = move_num+1
+    #Loops, simulating a game and determining a winner(if there is one)
+    for(i in c(1:num_empty**2)){
+      board_copy_copy = board_copy
+      num_empty_copy = num_empty
+      probabilities_copy_copy = probabilities_copy
+      for(k in c(move_num:9)){
+        winning_spot = one_away(board_copy_copy)
+        if (winning_spot != 0){
+          move = winning_spot
+        } else{
+          if(num_empty == 1){
+            for(j in c(1:9)){
+              if(probabilities_copy_copy[j] == 1){
+                move = j
+                break
+              }
+            }
+          } else{
+            move = sample(1:9, 1, prob = probabilities_copy_copy)
+            }
+        }
+        if(k %% 2 == 1){
+          board_copy_copy[move] = "X"
+        }
+        if(k %% 2 ==0){
+          board_copy_copy[move] = "O"
+        }
+        win = win_check(board_copy_copy)
+        #Only count's a win if it's the current player's turn in the actual game
+        win = win_check(board_copy_copy)
+        if(win == 1){
+          if(k %% 2 ==players_turn){
+            wins = wins+1
+          }
+          next
+        }
+        num_empty_copy = num_empty_copy - 1
+        probabilities_copy_copy[move] = 0
+        for(j in c(1:9)){
+          if(probabilities_copy_copy[j] != 0){
+            probabilities_copy_copy[j] = 1/(num_empty_copy)
+          }
+        }
+        if(k == 9){
+          next
+        }
+      }
+    }
+    move_wins[empty_spot] = wins
+  }
+  sum = sum(move_wins)
+  move_probs = c(rep(0,9))
+  for(i in c(1:9)){
+     # IF there were no wins, equal chance per spot
+    if(sum == 0){
+      if(probabilities[i] != 0){
+        move_probs[i] = 1/num_empty_initial
+      } else{
+        move_probs[i] = 0
+      }
+      #else probability for spot = ratio of wins/total wins
+    } else{
+      move_probs[i] = move_wins[i]/sum
+    }
+  }
+  return(move_probs)
+}
+
+
+```
+
+```{r}
+options(digits = 4)
+tictactoe_predicted = function(){
+    board = c(" ", " ", " ", " ", " ", " ", " ", " ", " ")
+    win = 0
+    for(move_number in c(1:9)){
+      winning_spot = one_away(board)
+      if (winning_spot != 0){
+        move = winning_spot
+      } else{
+        move = tictactoe_random_best(board, move_number)
+      }
+      if(move_number %% 2 == 1){
+        board[move] = "X"
+      }
+      if(move_number %% 2 ==0){
+        board[move] = "O"
+      }
+      win = win_check(board)
+      if(win == 1){
+        return("Win")
+      }
+    }
+    return("Tie")
+}
+
+simlist = replicate(1000,tictactoe_predicted())
+win_or_tie = as.data.frame(simlist)
+win_or_tie = win_or_tie %>%
+  mutate(win_tie = as.factor(simlist))
+
+ggplot(win_or_tie, aes(win_tie)) +
+  geom_bar() +
+  xlab("Turn Won")
+
+winchtable(turn_win)
+mean(simlist, na.rm = TRUE)
+```
+
+```{r}
+tictactoe_random_best = function(board, move_num){
+  players_turn = move_num %% 2  
+  probabilities = c(rep(0,9))
+  empty_spots = c()
+  move_wins = c(rep(0,9))
+  for(i in c(1:9)){
+    if(board[i] == " "){
+      empty_spots[length(empty_spots)+1] = i
+    }
+  }
+  num_empty = length(empty_spots)
+  for(value in empty_spots){
+    probabilities[value] = 1/(num_empty)
+  }
+  if(num_empty==1){
+    return(probabilities)
+  }
+  num_empty_initial = num_empty
+  for(empty_spot in empty_spots){
+    probabilities_copy = probabilities
+    empty_spots_copy = empty_spots
+    wins = 0
+    move = empty_spot
+    board_copy = board
+    if(move_num %% 2 == 1){
+      board_copy[move] = "X"
+    }
+    if(move_num %% 2 ==0){
+      board_copy[move] = "O"
+    }
+    num_empty = num_empty_initial - 1
+    probabilities_copy[move] = 0
+    for(j in c(1:9)){
+      if(probabilities_copy[j] != 0){
+        probabilities_copy[j] = 1/(num_empty)
+      }
+    }
+    move_num = move_num+1
+    for(i in c(1:num_empty**2)){
+      board_copy_copy = board_copy
+      num_empty_copy = num_empty
+      probabilities_copy_copy = probabilities_copy
+      for(k in c(move_num:9)){
+        winning_spot = one_away(board_copy_copy)
+        if (winning_spot != 0){
+          move = winning_spot
+        } else{
+          if(num_empty == 1){
+            for(j in c(1:9)){
+              if(probabilities_copy_copy[j] == 1){
+                move = j
+                break
+              }
+            }
+          } else{
+            move = sample(1:9, 1, prob = probabilities_copy_copy)
+            }
+        }
+        
+        if(k %% 2 == 1){
+          board_copy_copy[move] = "X"
+        }
+        if(k %% 2 ==0){
+          board_copy_copy[move] = "O"
+        }
+        win = win_check(board_copy_copy)
+        if(win == 1){
+          if(k %% 2 ==players_turn){
+            wins = wins+1
+          }
+          next
+        }
+        num_empty_copy = num_empty_copy - 1
+        probabilities_copy_copy[move] = 0
+        for(j in c(1:9)){
+          if(probabilities_copy_copy[j] != 0){
+            probabilities_copy_copy[j] = 1/(num_empty_copy)
+          }
+        }
+        if(k == 9){
+          next
+        }
+      }
+    }
+    move_wins[empty_spot] = wins
+  }
+  best_move = match(max(move_wins), move_wins)
+  return(best_move)
+}
+```
+
+
+# Tic-Tac-Toe - Function to check for a winning board
+
+`board[1]` = top left of board
+
+`board[3]` = Top right
+
+`board[9]` = bottom right
+
+```{r}
+win_check = function(board){
+  if(board[5] != " "){
+    if((board[4] == board[5] & board[5]==board[6])|(board[2] == board[5] & board[5]==board[8])|
+       (board[1] == board[5] & board[5]==board[9])|(board[3] == board[5]& board[5]==board[7])){
+      return(1)
+    }
+  }
+  if(board[1] != " "){
+    if((board[1]==board[2]& board[1]==board[3]) | (board[1] == board[4] & board[1]==board [7])){
+      return(1)
+    }
+  }
+  if(board[9] != " "){
+    if((board[7] == board[9] & board[8]==board[9])|(board[3]==board[9]& board[6]==board[9])){
+      return(1)
+    }
+  }
+  return(0)
+}
+
+one_away = function(board){
+  if(board[1] == " "){
+    if((board[5]==board[9]&board[5]!=" ")|(board[2]==board[3]&board[2]!=" ")|
+       (board[4]==board[7]&board[4]!=" ")){
+      return(1)
+    }
+  }
+  if(board[2] == " "){
+    if((board[1]==board[3]&board[1]!=" ")|(board[5]==board[8]&board[5]!=" ")){
+      return(2)
+    }
+  }
+  if(board[3] == " "){
+    if((board[1]==board[2]&board[1]!=" ")|(board[5]==board[7]&board[5]!=" ")|
+       (board[6]==board[9]&board[6]!=" ")){
+      return(3)
+    }
+  }
+  if(board[4] == " "){
+    if((board[1]==board[7]&board[1]!=" ")|(board[5]==board[6]&board[5]!=" ")){
+      return(4)
+    }
+  }  
+  if(board[5] == " "){
+    if((board[1]==board[9]&board[9]!=" ")|(board[3]==board[7]&board[3]!=" ")|
+       (board[2]==board[8]&board[2]!=" ")|(board[4]==board[6]&board[4]!=" ")){
+      return(5)
+    }
+  }  
+  if(board[6] == " "){
+    if((board[4]==board[5]&board[4]!=" ")|(board[3]==board[9]&board[9]!=" ")){
+      return(6)
+    }
+  }  
+  if(board[7] == " "){
+    if((board[1]==board[4]&board[1]!=" ")|(board[3]==board[5]&board[3]!=" ")|
+       (board[8]==board[9]&board[8]!=" ")){
+      return(7)
+    }
+  }
+  if(board[8] == " "){
+    if((board[2]==board[5]&board[2]!=" ")|(board[7]==board[9]&board[7]!=" ")){
+      return(8)
+    }
+  }
+  if(board[9] == " "){
+    if((board[7]==board[8]&board[7]!=" ")|(board[5]==board[1]&board[5]!=" ")|
+       (board[3]==board[6]&board[3]!=" ")){
+      return(9)
+    }
+  }
+  return(0)
+}
+
+```
+
+

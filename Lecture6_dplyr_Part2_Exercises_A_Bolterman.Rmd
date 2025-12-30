@@ -1,0 +1,131 @@
+---
+title: "Stat 305 Lecture 6 dplyr Part 2 Exercises: `arrange` and `select`, with Modifications by Thomas Fiore"
+author: "Solutions by Abigail Bolterman"
+date:   "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## External Requirements
+
+```{r warning=FALSE, message=FALSE}
+# load the library dplyr here
+library(dplyr)
+# load the library nycflights13 here
+library(nycflights13)
+```
+
+## Exercises
+
+**Use the `flights` data set from the package `nycflights13` to do each of the following exercises. The main commands are `arrange` and `select`. Remind yourself with the lecture notes.** 
+
+**1a) Sort `flights` in increasing order by departure delay and store the result in a tibble called `df`, in other words, assign the result to `df`. We will use this `df` in the rest of Exercise 1. **
+
+```{r}
+df = arrange(flights, dep_delay)
+
+```
+
+**1b) Find the 5 flights with least delay, which means find the 5 flights that departed the farthest in advance of the scheduled departure (remember what negative departure delay means in this data set!). Hint: Remember we are using `df`. Also remember the command `head( , 5)`. Look at the column of departure delays to check that your answer makes sense.**
+
+```{r}
+head(df, 5)
+
+```
+
+**1c) Next try to find the 5 flights with the longest delay using `tail( , 5)`. Hint: Remember we are using `df`.**
+
+```{r}
+tail(df,5)
+```
+
+**Why does this not find the 5 flights with the longest delay? Hint: by now you really should be in the habit of looking to see if you get the expected output.** 
+
+Answer: We don't find the flights with the longest departure delays because it gave us flights without departure delays recorded.
+
+**1d) Based on the previous output how does `arrange` handle NAs when you sort in increasing order?**
+
+Answer: Arrange puts NAs at the end of the list when we sort by increasing order.
+
+**How does `arrange` handle NAs when you sort in decreasing order? Consult the documentation for `arrange` in R Studio to find out if NAs come first when you sort in decreasing order.**
+
+Answer: NAs will be at the end of the list when the data is sorted in decreasing order.
+
+**1e) How many NAs are in the column of departure delays? Hint: obtain that column as a vector from the data frame, and then find the number of NAs in there. Review the end of Lecture 5 notes if you forgot. **
+
+```{r}
+sum(is.na(df$dep_delay))
+```
+
+Answer: There are 8,255 flights with NA for their departure delay.
+
+**1f) Next let's properly find the 5 flights with the longest delay using nested commands. Using the matrix method for indexing into a dataframe and `!is.na()`, find the sub data frame (subtibble) of `df` consisting of all rows that do not have an NA in the departure delay variable. Apply `tail( , 5)` to that.**
+
+```{r}
+
+tail(df[!is.na(df$dep_delay), ], 5)
+
+```
+
+
+**2) Review the Lecture 6 notes, and find three ways to obtain from `flights` the sub data frame (subtibble) that has only the columns `dep_time`, `dep_delay`, `arr_time`, and `arr_delay` from `flights`. Hints: i) the command `select` will be useful, ii) you can use `c()` with column names though not mentioned in lecture, iii) in the third code block you are provided with the complementary column names, i.e. all but the 4 requested.**
+
+
+```{r}
+
+select(flights, dep_time,dep_delay,arr_time,arr_delay)
+
+```
+
+```{r}
+
+select(flights, c("dep_time","dep_delay","arr_time","arr_delay"))
+
+```
+
+```{r}
+# this vector has all the other column names besides the requested 4
+# you can use it in the select command somehow
+# c("year", "month", "day", "sched_dep_time", "sched_arr_time", "carrier", "flight",
+#   "tailnum", "origin", "dest", "air_time", "distance", "hour", "minute", "time_hour")  
+
+select(flights, !c("year", "month", "day", "sched_dep_time", "sched_arr_time", "carrier",
+                   "flight", "tailnum", "origin", "dest", "air_time", "distance", "hour",
+                   "minute", "time_hour") )
+
+```
+
+
+**3) What happens if you include the name of a variable multiple times in a select() call? Try selecting `dep_delay` twice.**.
+
+```{r}
+select(flights, dep_delay, dep_delay)
+
+```
+
+Answer: When a variable is included multiple times in the same select() call, it only shows the data once.
+
+**4) Does the result of running the following code surprise you?** 
+
+```{r}
+select(flights, contains("TIME"))
+```
+
+Answer: I was slightly surprised that the call wasn't case sensitive, that looking for "TIME" got the variables that contained "time."
+
+**How do the `select` helpers deal with case by default? Consult the documentation in R Studio for `contains`, and follow the link and read.** 
+
+Answer: By default, the `select` helpers ignore case when matching names. You can set `ignore.case = FALSE` within the call to make case matter.
+
+
+**Revise the command below to change the default case control inside `contains()` to make it case sensitive, so you get no columns at all. Of course, to do this exercise you must have read the documentation as directed in the previous exercise. **
+
+```{r}
+# in the following add the case control argument inside contains()
+# to make it case sensitive, so you get no columns at all
+select(flights, contains("TIME", ignore.case = FALSE))
+```
+

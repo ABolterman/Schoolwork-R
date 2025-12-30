@@ -1,0 +1,113 @@
+---
+title: 'Stat 305 Lecture 1 Part 2 Exercises: Matrices, Lists, and Data Frames, by Thomas Fiore'
+author: "Solutions by Abigail Bolterman"
+date: "2022/09/08"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Matrices
+
+Create a $3\times 2$ matrix `A` with first column 1,2,3 and second column 4,5,6. 
+```{r}
+A = matrix(1:6, nrow=3)
+A
+```
+
+Create a "column vector" `v` with entries 7,8. Hint: You can't code this as a vector, it is a $2 \times 1$ matrix `v`.
+```{r}
+v = matrix(7:8, ncol=1)
+v
+```
+
+
+Then matrix multiply in R to get `Av` and compare that with your computation by hand. 
+```{r}
+R = A %*% v
+R
+```
+
+Find the inverse of the $2 \times 2$ matrix with first row 1,2 and second row 3,4. And multiply `B` and `Binverse` in both orders to confirm that you get the identity. 
+```{r}
+B = matrix(1:4, nrow=2)
+B
+B_inverse = solve(B)
+B_inverse
+B%*%B_inverse
+```
+
+## Lists
+
+Create a list `student` with `firstname` Joe, `entrance_year` 2018, and `honors` true. 
+```{r}
+student = list(firstname='Joe',
+               entrance_year=2018,
+               honors=TRUE)
+student
+```
+
+Access the honors status in 3 ways as a logical.  
+```{r}
+student$honors
+student[['honors']]
+student[[3]]
+```
+
+Access the honors status in 2 ways as a sublist.  
+```{r}
+student['honors']
+student[3]
+```
+
+## Data Frames
+
+
+Try out the useful data frame commands on the `iris` data set. These commands were `?`, `View`, `names`, `head`, `tail`, `str`, `summary`, `pairs`, and `boxplot`. 
+
+```{r}
+View(iris)
+names(iris)
+head(iris)
+tail(iris)
+str(iris)
+summary(iris)
+pairs(iris)
+boxplot(iris)
+```
+
+Extract the column of petal widths as a vector in 5 different ways. 
+```{r}
+iris$Petal.Width
+iris[['Petal.Width']]
+iris[[4]]
+iris[,'Petal.Width']
+iris[,4]
+```
+
+
+Extract entries 5 through 10 of the petal widths column as a data frame in two ways. 
+
+```{r}
+iris[5:10, 'Petal.Width']
+iris[5:10, 4]
+```
+
+Extract the sub data frame of just setosa measurements. 
+
+```{r}
+iris[iris$Species == 'setosa', ]
+```
+
+Create a new data frame `iris_sepalwidth01` that has an additional column called `sepalwidth01` with 0 or 1 that indicates if the sepal width is above average. 
+
+```{r}
+iris_sepalwidth01 = iris
+iris_sepalwidth01$sepalwidth01 = numeric(length(iris$Sepal.Width))
+iris_sepalwidth01[iris$Sepal.Width > mean(iris$Sepal.Width), 'sepalwidth01'] = 1
+iris_sepalwidth01
+```
